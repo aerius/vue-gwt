@@ -14,20 +14,13 @@ import org.mozilla.javascript.Scriptable;
  */
 public class VueTemplateCompiler {
 
-  private static Context context;
-  private static Scriptable scope;
-
-  public VueTemplateCompiler() {
-    // Engine is cached between instance to avoid creating at each compilation
-    if (context == null) {
-      initEngine();
-    }
-  }
+  private Context context;
+  private Scriptable scope;
 
   /**
    * Init the Rhino engine and load the Vue compiler in it.
    */
-  private void initEngine() {
+  private void startEngine() {
     context = Context.enter();
     scope = context.initStandardObjects();
 
@@ -36,6 +29,13 @@ public class VueTemplateCompiler {
     context
         .evaluateString(scope, JsVueTemplateCompiler.JS_VUE_TEMPLATE_COMPILER, "<cmd>",
             1, null);
+  }
+  
+  /**
+   * Exit the Rhino engine
+   */
+  private void exitEngine() {
+    Context.exit();
   }
 
   /**
@@ -47,6 +47,7 @@ public class VueTemplateCompiler {
    */
   public VueTemplateCompilerResult compile(String htmlTemplate)
       throws VueTemplateCompilerException {
+    startEngine();
 
     NativeObject templateCompilerResult;
     Object vueCompilerFunction = scope.get("compile", scope);
@@ -64,6 +65,7 @@ public class VueTemplateCompiler {
     String[] staticRenderFunctions = ((List<?>) templateCompilerResult
         .get("staticRenderFns")).stream().map(s -> ((ConsString) s).toString())
         .toArray(String[]::new);
+    exitEngine();
 
     return new VueTemplateCompilerResult(render, staticRenderFunctions);
   }
