@@ -19,6 +19,6 @@ jobs:
       - uses: aerius/github-actions/events/release-event-action@v1
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NEXUS_USERNAME: ${{ env.NEXUS_USERNAME }}
+          NEXUS_USERNAME: ${{ vars.NEXUS_USERNAME }}
           NEXUS_PASSWORD: ${{ secrets.NEXUS_PASSWORD }}
           JDK_VERSION: 17
