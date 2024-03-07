@@ -70,7 +70,7 @@
     <junit.version>5.1.0</junit.version>
     <junit-platform.version>1.1.0</junit-platform.version>
     <opentest4j.version>1.0.0</opentest4j.version>
-    <testing-compile.version>0.19</testing-compile.version>
+    <testing-compile.version>0.21.0</testing-compile.version>
     <maven.surefire.plugin.version>2.19</maven.surefire.plugin.version>
 
     <maven.compiler.source>1.8</maven.compiler.source>
@@ -326,6 +326,19 @@
           </plugin>
         </plugins>
       </build>
+    </profile>
+    <profile>
+      <id>add-exports</id>
+      <activation>
+        <jdk>[9,)</jdk>
+      </activation>
+      <properties>
+        <test.jvm.flags>
+          --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED
+          --add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED
+          --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED
+        </test.jvm.flags>
+      </properties>
     </profile>
   </profiles>
 
