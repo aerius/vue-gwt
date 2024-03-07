@@ -327,6 +327,19 @@
         </plugins>
       </build>
     </profile>
+    <profile>
+      <id>add-exports</id>
+      <activation>
+        <jdk>[9,)</jdk>
+      </activation>
+      <properties>
+        <test.jvm.flags>
+          --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED
+          --add-exports=jdk.compiler/com.sun.tools.javac.main=ALL-UNNAMED
+          --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED
+        </test.jvm.flags>
+      </properties>
+    </profile>
   </profiles>
 
 </project>
