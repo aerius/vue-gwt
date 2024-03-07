@@ -7,7 +7,7 @@
   <parent>
     <artifactId>vue-gwt-tests</artifactId>
     <groupId>com.axellience</groupId>
-    <version>1.1.0-AERIUS-SNAPSHOT</version>
+    <version>1.1.0-AERIUS</version>
   </parent>
 
   <artifactId>vue-gwt-tests-app-wrapper-gwt2</artifactId>
