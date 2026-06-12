@@ -1,9 +1,20 @@
 package com.axellience.vuegwt.processors.component.factory;
 
-import static com.axellience.vuegwt.processors.utils.ComponentGeneratorsUtil.hasTemplate;
-import static com.axellience.vuegwt.processors.utils.GeneratorsNameUtil.componentExposedTypeName;
 import static com.axellience.vuegwt.processors.utils.GeneratorsNameUtil.componentFactoryName;
 import static com.axellience.vuegwt.processors.utils.GeneratorsNameUtil.componentToTagName;
+
+import java.util.Date;
+import java.util.List;
+
+import javax.annotation.Generated;
+import javax.annotation.processing.Filer;
+import javax.annotation.processing.Messager;
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.inject.Inject;
+import javax.inject.Singleton;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
+import javax.tools.Diagnostic.Kind;
 
 import com.axellience.vuegwt.core.annotations.component.Component;
 import com.axellience.vuegwt.core.annotations.component.JsComponent;
@@ -21,17 +32,6 @@ import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec;
 import com.squareup.javapoet.TypeSpec.Builder;
-import java.util.Date;
-import java.util.List;
-import javax.annotation.Generated;
-import javax.annotation.processing.Filer;
-import javax.annotation.processing.Messager;
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.inject.Inject;
-import javax.inject.Singleton;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
-import javax.tools.Diagnostic.Kind;
 
 /**
  * Abstract class to generate {@link VueComponentFactory} from the user {@link IsVueComponent}
@@ -43,9 +43,9 @@ import javax.tools.Diagnostic.Kind;
  */
 public abstract class AbstractVueComponentFactoryGenerator {
 
-  private static final String INSTANCE_PROP = "INSTANCE";
+  static final String INSTANCE_PROP = "INSTANCE";
 
-  private final ProcessingEnvironment processingEnv;
+  final ProcessingEnvironment processingEnv;
   private final Filer filer;
   final Messager messager;
 
@@ -171,12 +171,6 @@ public abstract class AbstractVueComponentFactoryGenerator {
     getBuilder.beginControlFlow("if ($L == null)", INSTANCE_PROP);
 
     getBuilder.addStatement("$L = new $T()", INSTANCE_PROP, vueFactoryClassName);
-
-    if (hasTemplate(processingEnv, component)) {
-      getBuilder.addStatement("$L.injectComponentCss($T.getScopedCss())",
-          INSTANCE_PROP,
-          componentExposedTypeName(component));
-    }
 
     getBuilder.addCode("$L.init(", INSTANCE_PROP);
     boolean isFirst = true;
