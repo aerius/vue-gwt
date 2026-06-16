@@ -3,12 +3,28 @@ package com.axellience.vuegwt.processors.component.factory;
 import static com.axellience.vuegwt.processors.utils.ComponentGeneratorsUtil.getComponentCustomizeOptions;
 import static com.axellience.vuegwt.processors.utils.ComponentGeneratorsUtil.getComponentLocalComponents;
 import static com.axellience.vuegwt.processors.utils.ComponentGeneratorsUtil.getSuperComponentType;
+import static com.axellience.vuegwt.processors.utils.ComponentGeneratorsUtil.hasTemplate;
 import static com.axellience.vuegwt.processors.utils.GeneratorsNameUtil.componentExposedTypeName;
 import static com.axellience.vuegwt.processors.utils.GeneratorsNameUtil.componentFactoryName;
 import static com.axellience.vuegwt.processors.utils.GeneratorsNameUtil.componentInjectedDependenciesName;
 import static com.axellience.vuegwt.processors.utils.GeneratorsNameUtil.directiveOptionsName;
 import static com.axellience.vuegwt.processors.utils.GeneratorsNameUtil.directiveToTagName;
 import static com.axellience.vuegwt.processors.utils.GeneratorsNameUtil.providerOf;
+
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
+
+import javax.annotation.processing.ProcessingEnvironment;
+import javax.inject.Inject;
+import javax.lang.model.element.Modifier;
+import javax.lang.model.element.TypeElement;
+import javax.lang.model.type.DeclaredType;
+import javax.lang.model.type.MirroredTypesException;
+import javax.lang.model.type.TypeMirror;
+import javax.lang.model.util.Elements;
+import javax.tools.Diagnostic.Kind;
 
 import com.axellience.vuegwt.core.annotations.component.Component;
 import com.axellience.vuegwt.core.client.Vue;
@@ -25,19 +41,7 @@ import com.squareup.javapoet.CodeBlock;
 import com.squareup.javapoet.MethodSpec;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeSpec.Builder;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Stream;
-import javax.annotation.processing.ProcessingEnvironment;
-import javax.inject.Inject;
-import javax.lang.model.element.Modifier;
-import javax.lang.model.element.TypeElement;
-import javax.lang.model.type.DeclaredType;
-import javax.lang.model.type.MirroredTypesException;
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.util.Elements;
-import javax.tools.Diagnostic.Kind;
+
 import jsinterop.base.JsPropertyMap;
 
 /**
@@ -72,6 +76,10 @@ public class VueComponentFactoryGenerator extends AbstractVueComponentFactoryGen
 
     List<CodeBlock> initParametersCall = new LinkedList<>();
 
+    // Reuse this (injected) instance as the static singleton, so get() returns the DI-built factory
+    // instead of constructing a parallel, dependency-less one.
+    initBuilder.addStatement("$L = this", INSTANCE_PROP);
+
     // Get options
     initBuilder.addStatement("$T<$T> componentOptions = new $T().getOptions()",
         VueComponentOptions.class,
@@ -103,6 +111,13 @@ public class VueComponentFactoryGenerator extends AbstractVueComponentFactoryGen
 
     registerLocalComponents(component, initBuilder, initParametersCall);
     registerLocalDirectives(componentAnnotation, initBuilder);
+
+    // Inject scoped CSS here (was previously only done in the static get() path) so the DI-built
+    // factory is fully set up and the static get() tree is no longer needed.
+    if (hasTemplate(processingEnv, component)) {
+      initBuilder.addStatement("injectComponentCss($T.getScopedCss())",
+          componentExposedTypeName(component));
+    }
 
     MethodSpec initMethod = initBuilder.build();
     vueFactoryClassBuilder.addMethod(initMethod);
